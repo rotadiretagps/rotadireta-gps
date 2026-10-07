@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RotaDireta GPS - Login & Acesso</title>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --primary: #22c55e;
+      --primary-hover: #16a34a;
+      --text: #ffffff;
+      --text-muted: #a1a1aa;
+      --danger: #ef4444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    
+    .container { background-color: var(--card-bg); width: 100%; max-width: 400px; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+    .logo { font-size: 26px; font-weight: bold; color: var(--primary); margin-bottom: 8px; letter-spacing: 0.5px; }
+    .slogan { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+    
+    .input-group { margin-bottom: 16px; text-align: left; }
+    .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+    .input-group input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: var(--text); outline: none; }
+    .input-group input:focus { border-color: var(--primary); }
+    
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; background-color: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 15px; }
+    .btn:hover { background-color: var(--primary-hover); }
+    .btn-pay { background-color: #3b82f6; color: white; text-decoration: none; display: block; text-align: center; margin-top: 15px; }
+    .btn-pay:hover { background-color: #2563eb; }
+    
+    .hidden { display: none; }
+    .status-box { padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
+    .status-expired { background-color: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger); }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="auth-card">
+    <div class="logo">RotaDireta GPS</div>
+    <div class="slogan">De um entregador para entregadores. Simples e fácil de usar.</div>
+
+    <!-- TELA DE LOGIN / CADASTRO -->
+    <form id="login-form">
+      <div class="input-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="seu@email.com" required>
+      </div>
+      <div class="input-group">
+        <label for="password">Senha</label>
+        <input type="password" id="password" placeholder="******" required>
+      </div>
+      <button type="submit" class="btn">Entrar / Cadastrar</button>
+    </form>
+
+    <!-- TELA DE BLOQUEIO DE PAGAMENTO (TRIAL / ASSINATURA EXPIRADA) -->
+    <div id="payment-screen" class="hidden">
+      <div class="status-box status-expired">
+        Seu período de teste ou assinatura expirou!
+      </div>
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">
+        Para continuar utilizando o RotaDireta GPS por +30 dias, realize a renovação de R$ 25,00.
+      </p>
+      <a href="https://invoice.infinitepay.io/alexandre-morche/ITaZ64Sot8" target="_blank" class="btn btn-pay">
+        Pagar R$ 25,00 via InfinitePay
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // 1. CONFIGURAÇÕES DO SUPABASE (Substituir com as chaves da nova conta rotadiretagps@gmail.com)
+    const SUPABASE_URL = 'https://SEU-PROJETO.supabase.co';
+    const SUPABASE_ANON_KEY = 'SUA-CHAVE-ANONIMA';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const loginForm = document.getElementById('login-form');
+    const paymentScreen = document.getElementById('payment-screen');
+
+    // 2. VALIDAÇÃO DE TRIAL (15 DIAS) E MENSALIDADE
+    async function checkUserAccess(user) {
+      let { data: profile, error } = await supabase
+        .from('profiles')
+        .select('created_at, pago_ate')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !profile) return false;
+
+      const now = new Date();
+      const createdAt = new Date(profile.created_at);
+      const trialEndDate = new Date(createdAt);
+      trialEndDate.setDate(trialEndDate.getDate() + 15); // +15 Dias Grátis
+
+      const paidUntil = profile.pago_ate ? new Date(profile.pago_ate) : null;
+
+      const isTrialValid = now <= trialEndDate;
+      const isSubscriptionValid = paidUntil && now <= paidUntil;
+
+      if (isTrialValid || isSubscriptionValid) {
+        // PERMISSÃO LIBERADA: Redireciona para o roteirizador (Parte 02)
+        window.location.href = 'roteirizador.html'; 
+      } else {
+        // TELA DE BLOQUEIO
+        loginForm.classList.add('hidden');
+        paymentScreen.classList.remove('hidden');
+      }
+    }
+
+    // 3. AUTENTICAÇÃO / REGISTRO AUTOMÁTICO
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        const signUp = await supabase.auth.signUp({ email, password });
+        if (signUp.error) {
+          alert('Erro na autenticação: ' + signUp.error.message);
+          return;
+        }
+        data = signUp.data;
+      }
+
+      if (data.user) {
+        checkUserAccess(data.user);
+      }
+    });
+  </script>
+</body>
+</html>
