@@ -73,17 +73,17 @@
   </div>
 
   <script>
-    // 1. CONFIGURAÇÕES DO SUPABASE (Substituir com as chaves da nova conta rotadiretagps@gmail.com)
-    const SUPABASE_URL = 'https://SEU-PROJETO.supabase.co';
-    const SUPABASE_ANON_KEY = 'SUA-CHAVE-ANONIMA';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // 1. CONFIGURAÇÕES DO SUPABASE
+    const SUPABASE_URL = 'https://crrtjeanawlaodcexcad.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_IhRhHkEvnCuruc-mLU7fUQ_f7tnvQwJ';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const loginForm = document.getElementById('login-form');
     const paymentScreen = document.getElementById('payment-screen');
 
     // 2. VALIDAÇÃO DE TRIAL (15 DIAS) E MENSALIDADE
     async function checkUserAccess(user) {
-      let { data: profile, error } = await supabase
+      let { data: profile, error } = await supabaseClient
         .from('profiles')
         .select('created_at, pago_ate')
         .eq('id', user.id)
@@ -117,10 +117,10 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      let { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
-        const signUp = await supabase.auth.signUp({ email, password });
+        const signUp = await supabaseClient.auth.signUp({ email, password });
         if (signUp.error) {
           alert('Erro na autenticação: ' + signUp.error.message);
           return;
