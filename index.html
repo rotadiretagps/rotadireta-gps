@@ -32,13 +32,15 @@
     
     .input-group { margin-bottom: 16px; text-align: left; }
     .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-    .input-group input { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border); background: #2a2a2a; color: var(--text); outline: none; font-size: 15px; }
-    .input-group input:focus { border-color: var(--primary); }
+    .input-group input, .input-group select { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border); background: #2a2a2a; color: var(--text); outline: none; font-size: 15px; }
+    .input-group input:focus, .input-group select:focus { border-color: var(--primary); }
     
-    .btn { width: 100%; padding: 13px; border: none; border-radius: 8px; background-color: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 16px; margin-top: 8px; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; background-color: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 15px; margin-top: 8px; }
     .btn:hover { background-color: var(--primary-hover); }
     .btn-pay { background-color: #3b82f6; color: white; text-decoration: none; display: block; text-align: center; margin-top: 15px; }
     .btn-pay:hover { background-color: #2563eb; }
+    
+    .info-text { font-size: 12px; color: var(--text-muted); margin-top: 12px; line-height: 1.4; }
     
     .hidden { display: none !important; }
     .status-box { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
@@ -51,7 +53,7 @@
     <div class="logo">RotaDireta GPS</div>
     <div class="slogan">De um entregador para entregadores. Simples e fácil de usar.</div>
 
-    <!-- NAVEGAÇÃO POR ABAS -->
+    <!-- ABAS -->
     <div class="tabs">
       <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Entrar</button>
       <button class="tab-btn" id="tab-signup" onclick="switchTab('signup')">Cadastrar</button>
@@ -66,6 +68,13 @@
       <div class="input-group">
         <label for="login-password">Senha</label>
         <input type="password" id="login-password" placeholder="Sua senha" required autocomplete="current-password">
+      </div>
+      <div class="input-group">
+        <label for="login-device-type">Função do Aparelho</label>
+        <select id="login-device-type">
+          <option value="roteirizador">Aparelho 1: Carregar Lista & Roteirizar</option>
+          <option value="navegador">Aparelho 2: Apenas Iniciar/Navegar Rota</option>
+        </select>
       </div>
       <button type="submit" class="btn">Entrar na Conta</button>
     </form>
@@ -84,10 +93,14 @@
         <label for="signup-confirm-password">Confirmar Senha</label>
         <input type="password" id="signup-confirm-password" placeholder="Repita a senha" required autocomplete="new-password">
       </div>
-      <button type="submit" class="btn">Criar Conta (15 Dias Grátis)</button>
+      <button type="submit" class="btn">Criar Conta (15 dias grátis sem compromisso)</button>
+      
+      <p class="info-text">
+        Experimente grátis por 15 dias. Após o período de teste, se desejar continuar utilizando, o valor é de apenas <strong>R$ 25,00 por mês</strong>.
+      </p>
     </form>
 
-    <!-- TELA DE BLOQUEIO DE PAGAMENTO (TRIAL / ASSINATURA EXPIRADA) -->
+    <!-- TELA DE BLOQUEIO DE PAGAMENTO -->
     <div id="payment-screen" class="hidden">
       <div class="status-box status-expired">
         Seu período de teste ou assinatura expirou!
@@ -102,12 +115,11 @@
   </div>
 
   <script>
-    // 1. CONFIGURAÇÕES DO SUPABASE
     const SUPABASE_URL = 'https://crrtjeanawlaodcexcad.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_IhRhHkEvnCuruc-mLU7fUQ_f7tnvQwJ';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // E-MAILS DE ADMINISTRADOR (ACESSO ILIMITADO E VITALÍCIO)
+    // E-mails com Acesso Total / Vitalício
     const ADMIN_EMAILS = [
       'rotadiretagps@gmail.com',
       'morchemarques@gmail.com'
@@ -119,7 +131,6 @@
     const tabLogin = document.getElementById('tab-login');
     const tabSignup = document.getElementById('tab-signup');
 
-    // Mudar de Aba
     function switchTab(mode) {
       if (mode === 'login') {
         tabLogin.classList.add('active');
@@ -134,29 +145,38 @@
       }
     }
 
-    // 2. VALIDAÇÃO DE ACESSO (ADMIN, TRIAL E MENSALIDADE)
-    async function checkUserAccess(user) {
-      // Se for administrador, libera o acesso imediatamente
+    async function checkUserAccess(user, deviceType) {
+      // Liberar Administradores imediatamente
       if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+        localStorage.setItem('deviceRole', deviceType || 'roteirizador');
         window.location.href = 'roteirizador.html';
         return;
       }
 
       let { data: profile, error } = await supabaseClient
         .from('profiles')
-        .select('created_at, pago_ate')
+        .select('created_at, pago_ate, login_count')
         .eq('id', user.id)
         .single();
 
       if (error || !profile) {
-        alert('Erro ao carregar dados do usuário.');
+        alert('Erro ao carregar dados da conta.');
         return;
       }
+
+      // Registrar uso/acessos do usuário
+      await supabaseClient
+        .from('profiles')
+        .update({
+          login_count: (profile.login_count || 0) + 1,
+          last_login: new Date().toISOString()
+        })
+        .eq('id', user.id);
 
       const now = new Date();
       const createdAt = new Date(profile.created_at);
       const trialEndDate = new Date(createdAt);
-      trialEndDate.setDate(trialEndDate.getDate() + 15); // +15 Dias Grátis
+      trialEndDate.setDate(trialEndDate.getDate() + 15);
 
       const paidUntil = profile.pago_ate ? new Date(profile.pago_ate) : null;
 
@@ -164,9 +184,9 @@
       const isSubscriptionValid = paidUntil && now <= paidUntil;
 
       if (isTrialValid || isSubscriptionValid) {
+        localStorage.setItem('deviceRole', deviceType || 'roteirizador');
         window.location.href = 'roteirizador.html'; 
       } else {
-        // Bloqueio por expiração
         loginForm.classList.add('hidden');
         signupForm.classList.add('hidden');
         document.querySelector('.tabs').classList.add('hidden');
@@ -174,11 +194,11 @@
       }
     }
 
-    // 3. AÇÃO DE LOGIN
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
+      const deviceType = document.getElementById('login-device-type').value;
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
@@ -188,11 +208,10 @@
       }
 
       if (data.user) {
-        checkUserAccess(data.user);
+        checkUserAccess(data.user, deviceType);
       }
     });
 
-    // 4. AÇÃO DE CADASTRO
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('signup-email').value;
@@ -212,7 +231,7 @@
       }
 
       if (data.user) {
-        checkUserAccess(data.user);
+        checkUserAccess(data.user, 'roteirizador');
       }
     });
   </script>
