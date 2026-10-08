@@ -198,7 +198,7 @@ const email=$('signup-email').value.trim(),password=$('signup-password').value,c
 if(password!==confirm)return say('As senhas não coincidem!');
 btn.disabled=true;clearMsg();
 try{
-const r=await supabaseClient.auth.signUp({email,password});
+const r=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:location.href.split(/[?#]/)[0]}});
 if(r.error)throw r.error;
 if(r.data.session&&r.data.user)await checkUserAccess(r.data.user,'roteirizador');
 else{showForms('login');$('login-email').value=email;say('Conta criada. Enviamos um link de confirmação para o seu e-mail. Confirme e depois entre.','ok')}
