@@ -7,7 +7,8 @@ const supabaseClient=window.supabase?window.supabase.createClient(SUPABASE_URL,S
 const deviceRole=localStorage.getItem('deviceRole')==='navegador'?'navegador':'roteirizador';
 function hasStoredSession(){try{return Object.keys(localStorage).some(k=>/^sb-.*-auth-token$/.test(k))}catch(e){return false}}
 function goLogin(){window.location.replace('index.html')}
-function openApp(){document.documentElement.classList.add('role-'+deviceRole);const g=document.getElementById('authGate');if(g)g.remove()}
+function accessExpired(){const u=localStorage.getItem('accessUntil');return u!==null&&Number(u)>0&&Date.now()>Number(u)}
+function openApp(){if(accessExpired())return goLogin();document.documentElement.classList.add('role-'+deviceRole);const g=document.getElementById('authGate');if(g)g.remove()}
 async function checkAuth(){
 let session=null;
 if(supabaseClient){try{session=(await supabaseClient.auth.getSession()).data.session}catch(e){}}
@@ -395,7 +396,9 @@ function pad(n){return String(n).padStart(2,'0')}
 function day0(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()}
 function renderDays(info){
 const el=document.getElementById('dayCount');
-if(!el||!info||!info.c)return;
+if(!el)return;
+if(localStorage.getItem('accessUntil')==='0'){el.textContent='admin';el.title='Acesso ilimitado';return}
+if(!info||!info.c)return;
 const now=new Date(),pago=info.p?new Date(info.p):null;
 let n,max,msg;
 if(pago&&pago.getTime()>now.getTime()){
