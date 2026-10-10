@@ -1,4 +1,4 @@
 window.APP_CONFIG = {
-    SUPABASE_URL: "COLE_AQUI_A_URL_DO_SEU_PROJETO",
-    SUPABASE_PUBLISHABLE_KEY: "COLE_AQUI_A_CHAVE_PUBLICAVEL_ANON"
+    SUPABASE_URL: "https://crrtjeanawlaodcexcad.supabase.co",
+    SUPABASE_PUBLISHABLE_KEY: "sb_publishable_IhRhHkEvnCuruc-mLU7fUQ_f7tnvQwJ"
 };
