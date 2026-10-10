@@ -16,13 +16,21 @@
         .tab { padding: 15px 8px; border: 0; border-bottom: 3px solid transparent; margin-bottom: -3px; background: transparent; color: var(--muted); font-size: 18px; font-weight: bold; cursor: pointer; }
         .tab.active { color: var(--green); border-bottom-color: var(--green); }
         label { display: block; margin: 20px 0 9px; color: var(--muted); font-size: 16px; }
-        input, select { width: 100%; min-height: 54px; padding: 15px; border: 1px solid #404040; border-radius: 12px; outline: none; background: var(--field); color: #ffffff; font-size: 17px; }
-        input:focus, select:focus { border-color: var(--green); }
+        input { width: 100%; min-height: 54px; padding: 15px; border: 1px solid #404040; border-radius: 12px; outline: none; background: var(--field); color: #ffffff; font-size: 17px; }
+        input:focus { border-color: var(--green); }
         .password-wrap { position: relative; }
         .password-wrap input { padding-right: 58px; }
         .toggle-password { position: absolute; top: 50%; right: 8px; width: 42px; height: 42px; transform: translateY(-50%); display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: #c7c7ce; cursor: pointer; }
         .toggle-password:hover { background: #383838; color: #ffffff; }
         .toggle-password svg { width: 22px; height: 22px; }
+        
+        /* Novo estilo para a função do aparelho em botões lado a lado */
+        .device-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+        .device-option { position: relative; }
+        .device-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+        .device-option label { display: block; margin: 0; padding: 14px 10px; text-align: center; background: var(--field); border: 1px solid #404040; border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .device-option input[type="radio"]:checked + label { background: #173b27; border-color: var(--green); color: #a8f2c1; }
+
         .primary { width: 100%; min-height: 58px; margin-top: 26px; padding: 16px; border: 0; border-radius: 12px; background: var(--green); color: #07180c; font-size: 18px; font-weight: bold; cursor: pointer; }
         .primary:disabled { opacity: .6; cursor: wait; }
         .secondary { display: block; margin: 18px auto 0; padding: 5px; border: 0; background: transparent; color: #b7d8ff; font-size: 15px; text-decoration: underline; cursor: pointer; }
@@ -70,18 +78,24 @@
             </div>
 
             <div id="deviceRoleWrap">
-                <label for="deviceRole">Função do Aparelho</label>
-                <select id="deviceRole" name="deviceRole">
-                    <option value="roteirizador">Aparelho 1: Carregar Lista & Roteirizar</option>
-                    <option value="preparador">Aparelho 2: Preparar Lista & Enviar</option>
-                </select>
+                <label>Função do Aparelho</label>
+                <div class="device-options">
+                    <div class="device-option">
+                        <input type="radio" id="roleRouter" name="deviceRole" value="roteirizador" checked>
+                        <label for="roleRouter">Aparelho 1: Roteirizar</label>
+                    </div>
+                    <div class="device-option">
+                        <input type="radio" id="rolePrep" name="deviceRole" value="preparador">
+                        <label for="rolePrep">Aparelho 2: Preparar</label>
+                    </div>
+                </div>
             </div>
 
             <button class="primary" id="submitButton" type="submit">Entrar na Conta</button>
             <button class="secondary" id="forgotButton" type="button">Esqueci minha senha</button>
             <div id="message" class="message" role="status" aria-live="polite"></div>
         </form>
-        <p class="note">Se você acabou de se cadastrar, confirme seu e-mail pelo link recebido e depois volte a esta página para entrar.</p>
+        <p class="note" id="loginNote">Se você acabou de se cadastrar, confirme seu e-mail pelo link recebido e depois volte a esta página para entrar.</p>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -98,11 +112,11 @@
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const confirmPasswordWrap = document.getElementById('confirmPasswordWrap');
             const deviceRoleWrap = document.getElementById('deviceRoleWrap');
-            const deviceRoleSelect = document.getElementById('deviceRole');
             const submitButton = document.getElementById('submitButton');
             const loginTab = document.getElementById('loginTab');
             const signupTab = document.getElementById('signupTab');
             const forgotButton = document.getElementById('forgotButton');
+            const loginNote = document.getElementById('loginNote');
             const message = document.getElementById('message');
             let mode = 'login';
             let supabase = null;
@@ -124,10 +138,13 @@
                 signupTab.classList.toggle('active', isSignup);
                 loginTab.setAttribute('aria-selected', String(!isSignup));
                 signupTab.setAttribute('aria-selected', String(isSignup));
+                
                 confirmPasswordWrap.hidden = !isSignup;
                 confirmPasswordInput.required = isSignup;
                 deviceRoleWrap.hidden = isSignup;
                 forgotButton.hidden = isSignup;
+                loginNote.hidden = isSignup;
+
                 passwordInput.autocomplete = isSignup ? 'new-password' : 'current-password';
                 submitButton.textContent = isSignup ? 'Criar Conta' : 'Entrar na Conta';
                 if (!preserveMessage) clearMessage();
@@ -146,7 +163,8 @@
             });
 
             async function goToAuthorizedPage(user) {
-                const role = deviceRoleSelect.value;
+                const selectedRadio = document.querySelector('input[name="deviceRole"]:checked');
+                const role = selectedRadio ? selectedRadio.value : 'roteirizador';
                 localStorage.setItem('deviceRole', role);
                 localStorage.setItem('rotd_device_role', role);
                 localStorage.setItem('rotd_user_id', user.id);
@@ -211,7 +229,7 @@
                             options: { emailRedirectTo: LOGIN_URL }
                         });
                         if (error) throw error;
-                        showMessage('Cadastro realizado! Verifique seu e-mail para confirmar a conta.', 'success');
+                        showMessage('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.', 'success');
                     } else {
                         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                         if (error) throw error;
@@ -236,7 +254,7 @@
                 if (error) {
                     showMessage(error.message, 'error');
                 } else {
-                    showMessage('Instruções enviadas para o seu e-mail.', 'success');
+                    showMessage('Instruções de recuperação enviadas para o seu e-mail.', 'success');
                 }
             });
 
