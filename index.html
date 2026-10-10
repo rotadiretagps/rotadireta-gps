@@ -1,262 +1,247 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111111">
-<title>RotaDireta GPS</title>
-<style>
-:root{color-scheme:dark;--bg:#111;--card:#202020;--field:#292929;--green:#19b653;--muted:#a3a3ad;--red:#472626}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--bg);color:#f7f7f7;font-family:Arial,Helvetica,sans-serif;display:grid;place-items:center;padding:22px}
-.card{width:min(100%,650px);background:var(--card);padding:clamp(22px,5vw,46px);border-radius:28px;box-shadow:0 18px 50px #0005}
-h1{text-align:center;color:var(--green);font-size:clamp(30px,6vw,48px);margin:4px 0 14px}
-.subtitle{text-align:center;color:var(--muted);font-size:18px;line-height:1.45;margin:0 0 42px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:4px solid #333;margin-bottom:30px}
-.tab{background:none;border:0;color:var(--muted);font-size:19px;font-weight:700;padding:16px 8px;cursor:pointer}
-.tab.active{color:var(--green);border-bottom:4px solid var(--green);margin-bottom:-4px}
-label{display:block;color:var(--muted);margin:22px 0 10px;font-size:17px}
-input,select{width:100%;background:var(--field);border:1px solid #393939;border-radius:14px;color:white;padding:17px 18px;font-size:18px;outline:none}
-input:focus,select:focus{border-color:var(--green)}
-button.primary{width:100%;margin-top:28px;border:0;border-radius:14px;background:var(--green);color:#06170b;font-weight:700;font-size:19px;padding:20px;cursor:pointer}
-button:disabled{opacity:.6;cursor:wait}
-.message{display:none;margin-top:22px;padding:16px;border-radius:13px;line-height:1.45;overflow-wrap:anywhere}
-.message.success{display:block;background:#173b27;color:#a8f2c1}
-.message.error{display:block;background:var(--red);color:#ffb2b2}
-.secondary{display:block;margin:18px auto 0;background:none;border:0;color:#b7d8ff;text-decoration:underline;font-size:15px;cursor:pointer}
-.note{color:var(--muted);font-size:13px;line-height:1.5;margin-top:24px;text-align:center}
-@media(max-width:420px){body{padding:14px}.card{border-radius:22px;padding:23px 18px}.subtitle{margin-bottom:28px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>RotaDireta GPS</title>
+    <style>
+        :root { color-scheme: dark; --background: #111111; --card: #202020; --field: #292929; --green: #19b653; --muted: #a3a3ad; }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; padding: 20px; display: grid; place-items: center; background: var(--background); color: #ffffff; font-family: Arial, Helvetica, sans-serif; }
+        .card { width: min(100%, 650px); padding: clamp(22px, 5vw, 46px); border-radius: 26px; background: var(--card); box-shadow: 0 18px 50px #0005; }
+        h1 { margin: 4px 0 14px; color: var(--green); text-align: center; font-size: clamp(30px, 6vw, 46px); }
+        .subtitle { margin: 0 0 36px; color: var(--muted); text-align: center; font-size: 17px; line-height: 1.5; }
+        .tabs { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 28px; border-bottom: 3px solid #383838; }
+        .tab { padding: 15px 8px; border: 0; border-bottom: 3px solid transparent; margin-bottom: -3px; background: transparent; color: var(--muted); font-size: 18px; font-weight: bold; cursor: pointer; }
+        .tab.active { color: var(--green); border-bottom-color: var(--green); }
+        label { display: block; margin: 20px 0 9px; color: var(--muted); font-size: 16px; }
+        input, select { width: 100%; min-height: 54px; padding: 15px; border: 1px solid #404040; border-radius: 12px; outline: none; background: var(--field); color: #ffffff; font-size: 17px; }
+        input:focus, select:focus { border-color: var(--green); }
+        .password-wrap { position: relative; }
+        .password-wrap input { padding-right: 58px; }
+        .toggle-password { position: absolute; top: 50%; right: 8px; width: 42px; height: 42px; transform: translateY(-50%); display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: #c7c7ce; cursor: pointer; }
+        .toggle-password:hover { background: #383838; color: #ffffff; }
+        .toggle-password svg { width: 22px; height: 22px; }
+        .primary { width: 100%; min-height: 58px; margin-top: 26px; padding: 16px; border: 0; border-radius: 12px; background: var(--green); color: #07180c; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .primary:disabled { opacity: .6; cursor: wait; }
+        .secondary { display: block; margin: 18px auto 0; padding: 5px; border: 0; background: transparent; color: #b7d8ff; font-size: 15px; text-decoration: underline; cursor: pointer; }
+        .message { display: none; margin-top: 20px; padding: 15px; border-radius: 10px; overflow-wrap: anywhere; font-size: 15px; line-height: 1.5; }
+        .message.success { display: block; background: #173b27; color: #a8f2c1; }
+        .message.error { display: block; background: #472626; color: #ffb2b2; }
+        .note { margin: 24px 0 0; color: var(--muted); text-align: center; font-size: 13px; line-height: 1.5; }
+        [hidden] { display: none !important; }
+    </style>
 </head>
 <body>
-<main class="card">
-<h1>RotaDireta GPS</h1>
-<p class="subtitle">De um entregador para entregadores. Simples e fácil de usar.</p>
-<div class="tabs" role="tablist">
-<button class="tab active" id="loginTab" type="button">Entrar</button>
-<button class="tab" id="signupTab" type="button">Cadastrar</button>
-</div>
-<form id="authForm">
-<label for="email">E-mail</label>
-<input id="email" name="email" type="email" autocomplete="email" required>
-<label for="password">Senha</label>
-<input id="password" name="password" type="password" autocomplete="current-password" minlength="6" required>
-<div id="confirmPasswordWrap" hidden>
-<label for="confirmPassword">Confirmar senha</label>
-<input id="confirmPassword" type="password" autocomplete="new-password" minlength="6">
-</div>
-<label for="deviceRole">Função do Aparelho</label>
-<select id="deviceRole" required>
-<option value="roteirizador">Aparelho 1: Carregar Lista &amp; Roteirizar</option>
-<option value="preparador">Aparelho 2: Preparar Lista &amp; Enviar</option>
-</select>
-<button class="primary" id="submitButton" type="submit">Entrar na Conta</button>
-<button class="secondary" id="forgotButton" type="button">Esqueci minha senha</button>
-<div id="message" class="message" role="status" aria-live="polite"></div>
-</form>
-<p class="note">Se você acabou de se cadastrar, confirme seu e-mail pelo link recebido e depois volte a esta página para entrar.</p>
-</main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./config.js"></script>
-<script>
-(() => {
-  const ROUTER_URL = './roteirizador.html';
-  const PAYMENT_URL = './pagamento.html';
-  const config = window.APP_CONFIG || {};
-  const message = document.getElementById('message');
-  const form = document.getElementById('authForm');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const confirmPassword = document.getElementById('confirmPassword');
-  const confirmWrap = document.getElementById('confirmPasswordWrap');
-  const roleSelect = document.getElementById('deviceRole');
-  const submitButton = document.getElementById('submitButton');
-  const loginTab = document.getElementById('loginTab');
-  const signupTab = document.getElementById('signupTab');
-  const forgotButton = document.getElementById('forgotButton');
-  let mode = 'login';
-  let supabase = null;
+    <main class="card">
+        <h1>RotaDireta GPS</h1>
+        <p class="subtitle">De um entregador para entregadores. Simples e fácil de usar.</p>
+        <div class="tabs" role="tablist" aria-label="Acesso à conta">
+            <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true">Entrar</button>
+            <button class="tab" id="signupTab" type="button" role="tab" aria-selected="false">Cadastrar</button>
+        </div>
+        <form id="authForm">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" autocomplete="email" required>
+            
+            <label for="password">Senha</label>
+            <div class="password-wrap">
+                <input id="password" name="password" type="password" autocomplete="current-password" minlength="6" required>
+                <button class="toggle-password" type="button" data-target="password" aria-label="Mostrar senha" title="Mostrar ou ocultar senha">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
 
-  function showMessage(text, type) {
-    message.textContent = text;
-    message.className = 'message ' + type;
-  }
+            <div id="confirmPasswordWrap" hidden>
+                <label for="confirmPassword">Confirmar senha</label>
+                <div class="password-wrap">
+                    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="6">
+                    <button class="toggle-password" type="button" data-target="confirmPassword" aria-label="Mostrar senha" title="Mostrar ou ocultar senha">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
-  function clearMessage() {
-    message.textContent = '';
-    message.className = 'message';
-  }
+            <div id="deviceRoleWrap">
+                <label for="deviceRole">Função do Aparelho</label>
+                <select id="deviceRole" name="deviceRole">
+                    <option value="roteirizador">Aparelho 1: Carregar Lista & Roteirizar</option>
+                    <option value="preparador">Aparelho 2: Preparar Lista & Enviar</option>
+                </select>
+            </div>
 
-  function setMode(nextMode) {
-    mode = nextMode;
-    const signup = mode === 'signup';
-    loginTab.classList.toggle('active', !signup);
-    signupTab.classList.toggle('active', signup);
-    confirmWrap.hidden = !signup;
-    confirmPassword.required = signup;
-    passwordInput.autocomplete = signup ? 'new-password' : 'current-password';
-    submitButton.textContent = signup ? 'Criar Conta' : 'Entrar na Conta';
-    forgotButton.hidden = signup;
-    clearMessage();
-  }
+            <button class="primary" id="submitButton" type="submit">Entrar na Conta</button>
+            <button class="secondary" id="forgotButton" type="button">Esqueci minha senha</button>
+            <div id="message" class="message" role="status" aria-live="polite"></div>
+        </form>
+        <p class="note">Se você acabou de se cadastrar, confirme seu e-mail pelo link recebido e depois volte a esta página para entrar.</p>
+    </main>
 
-  loginTab.addEventListener('click', () => setMode('login'));
-  signupTab.addEventListener('click', () => setMode('signup'));
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./config.js"></script>
+    <script>
+        (() => {
+            const LOGIN_URL = 'https://rotadiretagps.github.io/index.html';
+            const ROUTER_URL = './roteirizador.html';
+            const PAYMENT_URL = './pagamento.html';
+            const config = window.APP_CONFIG || {};
+            const form = document.getElementById('authForm');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const confirmPasswordWrap = document.getElementById('confirmPasswordWrap');
+            const deviceRoleWrap = document.getElementById('deviceRoleWrap');
+            const deviceRoleSelect = document.getElementById('deviceRole');
+            const submitButton = document.getElementById('submitButton');
+            const loginTab = document.getElementById('loginTab');
+            const signupTab = document.getElementById('signupTab');
+            const forgotButton = document.getElementById('forgotButton');
+            const message = document.getElementById('message');
+            let mode = 'login';
+            let supabase = null;
 
-  function loginUrl() {
-    return new URL('./index.html', window.location.href).href;
-  }
+            function showMessage(text, type) {
+                message.textContent = text;
+                message.className = 'message ' + type;
+            }
 
-  function handleConfirmationReturn() {
-    const url = new URL(window.location.href);
-    const hash = new URLSearchParams(url.hash.slice(1));
-    const query = new URLSearchParams(url.search);
-    const hasAuthReturn = hash.has('access_token') || hash.has('error') || query.has('code') || query.has('error') || query.get('confirmed') === '1';
-    if (!hasAuthReturn) return;
-    const authError = hash.get('error_description') || query.get('error_description') || hash.get('error') || query.get('error');
-    history.replaceState({}, document.title, loginUrl());
-    setMode('login');
-    if (authError) {
-      showMessage('Não foi possível confirmar o e-mail. Solicite um novo link de confirmação e tente novamente.', 'error');
-    } else {
-      showMessage('E-mail confirmado com sucesso! Faça login para continuar.', 'success');
-    }
-  }
+            function clearMessage() {
+                message.textContent = '';
+                message.className = 'message';
+            }
 
-  async function continueAfterLogin(user) {
-    const role = roleSelect.value;
-    localStorage.setItem('deviceRole', role);
-    localStorage.setItem('rotd_device_role', role);
-    localStorage.setItem('rotd_user_id', user.id);
-    const { data: profile, error } = await supabase.from('profiles')
-      .select('is_admin,trial_ends_at,access_until')
-      .eq('id', user.id)
-      .maybeSingle();
-    if (error) {
-      showMessage('Login realizado, mas não foi possível verificar seu acesso. Confira a tabela profiles e as políticas do Supabase.', 'error');
-      return;
-    }
-    if (profile && profile.is_admin === true) {
-      window.location.replace(ROUTER_URL);
-      return;
-    }
-    const now = Date.now();
-    const trialActive = profile && profile.trial_ends_at && new Date(profile.trial_ends_at).getTime() > now;
-    const paidActive = profile && profile.access_until && new Date(profile.access_until).getTime() > now;
-    if (trialActive || paidActive) {
-      window.location.replace(ROUTER_URL);
-      return;
-    }
-    if (!profile) {
-      showMessage('Conta autenticada, mas o perfil de acesso não foi encontrado. Verifique a criação automática do perfil no Supabase.', 'error');
-      return;
-    }
-    showMessage('Seu período de teste ou acesso pago não está ativo. Abrindo a página de acesso...', 'error');
-    setTimeout(() => window.location.replace(PAYMENT_URL), 1200);
-  }
+            function setMode(nextMode, preserveMessage = false) {
+                mode = nextMode;
+                const isSignup = mode === 'signup';
+                loginTab.classList.toggle('active', !isSignup);
+                signupTab.classList.toggle('active', isSignup);
+                loginTab.setAttribute('aria-selected', String(!isSignup));
+                signupTab.setAttribute('aria-selected', String(isSignup));
+                confirmPasswordWrap.hidden = !isSignup;
+                confirmPasswordInput.required = isSignup;
+                deviceRoleWrap.hidden = isSignup;
+                forgotButton.hidden = isSignup;
+                passwordInput.autocomplete = isSignup ? 'new-password' : 'current-password';
+                submitButton.textContent = isSignup ? 'Criar Conta' : 'Entrar na Conta';
+                if (!preserveMessage) clearMessage();
+            }
 
-  async function init() {
-    if (!window.supabase || !config.SUPABASE_URL || !config.SUPABASE_PUBLISHABLE_KEY ||
-        config.SUPABASE_URL.includes('COLE_AQUI') || config.SUPABASE_PUBLISHABLE_KEY.includes('COLE_AQUI')) {
-      showMessage('Configure a URL e a chave publicável do Supabase no arquivo config.js.', 'error');
-      submitButton.disabled = true;
-      return;
-    }
-    supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-    });
-    handleConfirmationReturn();
-    const { data, error } = await supabase.auth.getSession();
-    if (!error && data.session) {
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData.user && userData.user.email_confirmed_at) {
-        showMessage('Sessão encontrada. Verificando o acesso...', 'success');
-        await continueAfterLogin(userData.user);
-      }
-    }
-  }
+            loginTab.addEventListener('click', () => setMode('login'));
+            signupTab.addEventListener('click', () => setMode('signup'));
 
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
-    clearMessage();
-    if (!supabase) {
-      showMessage('A conexão com o Supabase não está configurada.', 'error');
-      return;
-    }
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    const selectedRole = roleSelect.value;
-    submitButton.disabled = true;
-    try {
-      if (mode === 'signup') {
-        if (password !== confirmPassword.value) {
-          showMessage('As senhas não são iguais.', 'error');
-          return;
-        }
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: loginUrl() }
-        });
-        if (error) throw error;
-        if (data.session && data.user) {
-          roleSelect.value = selectedRole;
-          showMessage('Conta criada. Entrando na conta...', 'success');
-          await continueAfterLogin(data.user);
-        } else {
-          showMessage('Cadastro realizado! Abra o e-mail enviado pelo Supabase, clique em “Confirm email address” e depois volte a esta página para entrar.', 'success');
-          setMode('login');
-          emailInput.value = email;
-          passwordInput.value = '';
-        }
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          const raw = String(error.message || '').toLowerCase();
-          if (raw.includes('email not confirmed')) {
-            showMessage('Seu e-mail ainda não foi confirmado. Abra o e-mail do Supabase e clique no link de confirmação.', 'error');
-          } else if (raw.includes('invalid login credentials')) {
-            showMessage('E-mail ou senha incorretos. Confira os dados digitados. Se acabou de se cadastrar, confirme o e-mail primeiro.', 'error');
-          } else {
-            showMessage(error.message || 'Não foi possível entrar. Tente novamente.', 'error');
-          }
-          return;
-        }
-        roleSelect.value = selectedRole;
-        await continueAfterLogin(data.user);
-      }
-    } catch (error) {
-      showMessage(error.message || 'Ocorreu um erro. Tente novamente.', 'error');
-    } finally {
-      submitButton.disabled = false;
-    }
-  });
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', () => {
+                    const target = document.getElementById(button.dataset.target);
+                    const showing = target.type === 'text';
+                    target.type = showing ? 'password' : 'text';
+                    button.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
+                });
+            });
 
-  forgotButton.addEventListener('click', async () => {
-    clearMessage();
-    if (!supabase) {
-      showMessage('A conexão com o Supabase não está configurada.', 'error');
-      return;
-    }
-    const email = emailInput.value.trim();
-    if (!email) {
-      showMessage('Digite seu e-mail no campo acima para receber o link de redefinição de senha.', 'error');
-      return;
-    }
-    forgotButton.disabled = true;
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: loginUrl() });
-      if (error) throw error;
-      showMessage('Se o e-mail estiver cadastrado, você receberá as instruções para redefinir a senha.', 'success');
-    } catch (error) {
-      showMessage(error.message || 'Não foi possível solicitar a redefinição de senha.', 'error');
-    } finally {
-      forgotButton.disabled = false;
-    }
-  });
+            async function goToAuthorizedPage(user) {
+                const role = deviceRoleSelect.value;
+                localStorage.setItem('deviceRole', role);
+                localStorage.setItem('rotd_device_role', role);
+                localStorage.setItem('rotd_user_id', user.id);
 
-  init();
-})();
-</script>
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('is_admin,trial_ends_at,access_until')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                if (error) {
+                    window.location.replace(ROUTER_URL);
+                    return;
+                }
+
+                if (!profile || profile.is_admin === true) {
+                    window.location.replace(ROUTER_URL);
+                    return;
+                }
+
+                const now = Date.now();
+                const trialActive = profile.trial_ends_at && new Date(profile.trial_ends_at).getTime() > now;
+                const paidActive = profile.access_until && new Date(profile.access_until).getTime() > now;
+
+                if (trialActive || paidActive) {
+                    window.location.replace(ROUTER_URL);
+                    return;
+                }
+
+                window.location.replace(PAYMENT_URL);
+            }
+
+            async function initialize() {
+                if (!window.supabase || !config.SUPABASE_URL || !config.SUPABASE_PUBLISHABLE_KEY) {
+                    submitButton.disabled = true;
+                    showMessage('A conexão com o Supabase não está configurada (verifique o config.js).', 'error');
+                    return;
+                }
+                supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY, {
+                    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+                });
+            }
+
+            form.addEventListener('submit', async event => {
+                event.preventDefault();
+                clearMessage();
+                if (!supabase) return;
+
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                submitButton.disabled = true;
+
+                try {
+                    if (mode === 'signup') {
+                        if (password !== confirmPasswordInput.value) {
+                            showMessage('As senhas não coincidem.', 'error');
+                            return;
+                        }
+                        const { data, error } = await supabase.auth.signUp({
+                            email,
+                            password,
+                            options: { emailRedirectTo: LOGIN_URL }
+                        });
+                        if (error) throw error;
+                        showMessage('Cadastro realizado! Verifique seu e-mail para confirmar a conta.', 'success');
+                    } else {
+                        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                        if (error) throw error;
+                        if (data.user) await goToAuthorizedPage(data.user);
+                    }
+                } catch (error) {
+                    showMessage(error.message || 'Erro ao processar a solicitação.', 'error');
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
+
+            forgotButton.addEventListener('click', async () => {
+                clearMessage();
+                if (!supabase) return;
+                const email = emailInput.value.trim();
+                if (!email) {
+                    showMessage('Insira o seu e-mail para recuperar a senha.', 'error');
+                    return;
+                }
+                const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: LOGIN_URL });
+                if (error) {
+                    showMessage(error.message, 'error');
+                } else {
+                    showMessage('Instruções enviadas para o seu e-mail.', 'success');
+                }
+            });
+
+            initialize();
+        })();
+    </script>
 </body>
 </html>
