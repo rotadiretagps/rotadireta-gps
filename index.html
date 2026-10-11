@@ -16,26 +16,13 @@
         .tab { padding: 15px 8px; border: 0; border-bottom: 3px solid transparent; margin-bottom: -3px; background: transparent; color: var(--muted); font-size: 18px; font-weight: bold; cursor: pointer; }
         .tab.active { color: var(--green); border-bottom-color: var(--green); }
         label { display: block; margin: 20px 0 9px; color: var(--muted); font-size: 16px; }
-        input { width: 100%; min-height: 54px; padding: 15px; border: 1px solid #404040; border-radius: 12px; outline: none; background: var(--field); color: #ffffff; font-size: 17px; }
-        input:focus { border-color: var(--green); }
+        input, select { width: 100%; min-height: 54px; padding: 15px; border: 1px solid #404040; border-radius: 12px; outline: none; background: var(--field); color: #ffffff; font-size: 17px; }
+        input:focus, select:focus { border-color: var(--green); }
         .password-wrap { position: relative; }
         .password-wrap input { padding-right: 58px; }
         .toggle-password { position: absolute; top: 50%; right: 8px; width: 42px; height: 42px; transform: translateY(-50%); display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: #c7c7ce; cursor: pointer; }
         .toggle-password:hover { background: #383838; color: #ffffff; }
         .toggle-password svg { width: 22px; height: 22px; }
-        
-        .label-with-help { display: flex; align-items: center; gap: 8px; }
-        .help-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #383838; color: var(--muted); border: none; font-size: 13px; font-weight: bold; cursor: pointer; }
-        .help-btn:hover { background: var(--green); color: #000; }
-        .help-box { display: none; margin-top: 8px; padding: 12px; border-radius: 10px; background: #2a2a2a; border: 1px solid #404040; color: #d0d0d0; font-size: 14px; line-height: 1.4; }
-        .help-box.active { display: block; }
-
-        .device-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
-        .device-option { position: relative; }
-        .device-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
-        .device-option label { display: block; margin: 0; padding: 14px 10px; text-align: center; background: var(--field); border: 1px solid #404040; border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-        .device-option input[type="radio"]:checked + label { background: #173b27; border-color: var(--green); color: #a8f2c1; }
-
         .primary { width: 100%; min-height: 58px; margin-top: 26px; padding: 16px; border: 0; border-radius: 12px; background: var(--green); color: #07180c; font-size: 18px; font-weight: bold; cursor: pointer; }
         .primary:disabled { opacity: .6; cursor: wait; }
         .secondary { display: block; margin: 18px auto 0; padding: 5px; border: 0; background: transparent; color: #b7d8ff; font-size: 15px; text-decoration: underline; cursor: pointer; }
@@ -88,24 +75,11 @@
             </div>
 
             <div id="deviceRoleWrap">
-                <div class="label-with-help">
-                    <label style="margin:0;">Função do Aparelho</label>
-                    <button type="button" class="help-btn" id="helpBtn" title="Como funciona?">?</button>
-                </div>
-                <div class="help-box" id="helpBox">
-                    📌 <strong>Aparelho 1:</strong> Todas as funções.<br>
-                    📌 <strong>Aparelho 2:</strong> Para carregar a lista online.
-                </div>
-                <div class="device-options">
-                    <div class="device-option">
-                        <input type="radio" id="roleRouter" name="deviceRole" value="roteirizador" checked>
-                        <label for="roleRouter">Aparelho 1: Roteirizar</label>
-                    </div>
-                    <div class="device-option">
-                        <input type="radio" id="rolePrep" name="deviceRole" value="preparador">
-                        <label for="rolePrep">Aparelho 2: Preparar</label>
-                    </div>
-                </div>
+                <label for="deviceRole">Função do Aparelho</label>
+                <select id="deviceRole" name="deviceRole">
+                    <option value="roteirizador">Aparelho 1: Carregar Lista e Roteirizar</option>
+                    <option value="preparador">Aparelho 2: Preparar</option>
+                </select>
             </div>
 
             <button class="primary" id="submitButton" type="submit">Entrar na Conta</button>
@@ -130,13 +104,12 @@
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const confirmPasswordWrap = document.getElementById('confirmPasswordWrap');
             const deviceRoleWrap = document.getElementById('deviceRoleWrap');
+            const deviceRoleSelect = document.getElementById('deviceRole');
             const submitButton = document.getElementById('submitButton');
             const loginTab = document.getElementById('loginTab');
             const signupTab = document.getElementById('signupTab');
             const forgotButton = document.getElementById('forgotButton');
             const loginNote = document.getElementById('loginNote');
-            const helpBtn = document.getElementById('helpBtn');
-            const helpBox = document.getElementById('helpBox');
             const message = document.getElementById('message');
             let mode = 'login';
             let supabase = null;
@@ -175,10 +148,6 @@
             loginTab.addEventListener('click', () => setMode('login'));
             signupTab.addEventListener('click', () => setMode('signup'));
 
-            helpBtn.addEventListener('click', () => {
-                helpBox.classList.toggle('active');
-            });
-
             document.querySelectorAll('.toggle-password').forEach(button => {
                 button.addEventListener('click', () => {
                     const target = document.getElementById(button.dataset.target);
@@ -201,7 +170,7 @@
                 if (errorText) {
                     showMessage('Não foi possível confirmar o e-mail. Solicite um novo link.', 'error');
                 } else {
-                    showMessage('Seja muito bem-vindo! E-mail confirmado com sucesso. Faça login na sua conta para continuar.', 'success');
+                    showMessage('E-mail confirmado com sucesso! Faça login na sua conta para continuar.', 'success');
                 }
             }
 
@@ -245,13 +214,13 @@
                         if (error) throw error;
                         
                         setMode('login');
-                        showMessage('Cadastro realizado com sucesso! Verifique seu e-mail e clique no link de confirmação para ativar sua conta.', 'success');
+                        showMessage('Cadastro realizado! Abra o e-mail enviado pelo Supabase, clique em "Confirm email address" e depois volte a esta página para entrar.', 'success');
                     } else {
                         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                         if (error) {
                             const errLower = error.message.toLowerCase();
                             if (errLower.includes('email not confirmed')) {
-                                showMessage('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de boas-vindas.', 'error');
+                                showMessage('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.', 'error');
                             } else if (errLower.includes('invalid login credentials')) {
                                 showMessage('E-mail ou senha incorretos. Confirme se já ativou a conta pelo link do e-mail.', 'error');
                             } else {
@@ -262,8 +231,7 @@
                         }
                         
                         if (data.user) {
-                            const selectedRadio = document.querySelector('input[name="deviceRole"]:checked');
-                            const role = selectedRadio ? selectedRadio.value : 'roteirizador';
+                            const role = deviceRoleSelect.value;
                             localStorage.setItem('deviceRole', role);
                             localStorage.setItem('rotd_device_role', role);
                             localStorage.setItem('rotd_user_id', data.user.id);
@@ -272,10 +240,7 @@
                     }
                 } catch (error) {
                     showMessage(error.message || 'Erro ao processar a solicitação.', 'error');
-                } finally {
-                    if (mode !== 'signup') {
-                        submitButton.disabled = false;
-                    }
+                    submitButton.disabled = false;
                 }
             });
 
