@@ -55,6 +55,11 @@
             <button class="tab" id="signupTab" type="button" role="tab" aria-selected="false">Cadastrar</button>
         </div>
         <form id="authForm">
+            <div id="nameWrap" hidden>
+                <label for="fullName">Nome</label>
+                <input id="fullName" name="fullName" type="text" autocomplete="name" placeholder="Seu nome completo">
+            </div>
+
             <label for="email">E-mail</label>
             <input id="email" name="email" type="email" autocomplete="email" required>
             
@@ -114,12 +119,14 @@
     <script src="./config.js"></script>
     <script>
         (() => {
-            const LOGIN_URL = 'https://rotadiretagps.github.io/index.html';
+            const LOGIN_URL = 'https://rotadiretagps.github.io/rotadireta-gps/';
             const ROUTER_URL = './roteirizador.html';
             const config = window.APP_CONFIG || {};
             const form = document.getElementById('authForm');
             const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
+            const fullNameInput = document.getElementById('fullName');
+            const nameWrap = document.getElementById('nameWrap');
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const confirmPasswordWrap = document.getElementById('confirmPasswordWrap');
             const deviceRoleWrap = document.getElementById('deviceRoleWrap');
@@ -152,6 +159,8 @@
                 loginTab.setAttribute('aria-selected', String(!isSignup));
                 signupTab.setAttribute('aria-selected', String(isSignup));
                 
+                nameWrap.hidden = !isSignup;
+                fullNameInput.required = isSignup;
                 confirmPasswordWrap.hidden = !isSignup;
                 confirmPasswordInput.required = isSignup;
                 deviceRoleWrap.hidden = isSignup;
@@ -192,14 +201,14 @@
                 if (errorText) {
                     showMessage('Não foi possível confirmar o e-mail. Solicite um novo link.', 'error');
                 } else {
-                    showMessage('E-mail confirmado com sucesso! Faça login para continuar.', 'success');
+                    showMessage('Seja muito bem-vindo! E-mail confirmado com sucesso. Faça login na sua conta para continuar.', 'success');
                 }
             }
 
             async function initialize() {
                 if (!window.supabase || !config.SUPABASE_URL || !config.SUPABASE_PUBLISHABLE_KEY) {
                     submitButton.disabled = true;
-                    showMessage('A conexão com o Supabase não está configurada (verifique o config.js).', 'error');
+                    showMessage('A conexão com o Supabase não está configurada.', 'error');
                     return;
                 }
                 supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY, {
@@ -224,23 +233,27 @@
                             submitButton.disabled = false;
                             return;
                         }
+                        const fullName = fullNameInput.value.trim();
                         const { data, error } = await supabase.auth.signUp({
                             email,
                             password,
-                            options: { emailRedirectTo: LOGIN_URL }
+                            options: {
+                                emailRedirectTo: LOGIN_URL,
+                                data: { full_name: fullName }
+                            }
                         });
                         if (error) throw error;
                         
                         setMode('login');
-                        showMessage('Cadastro realizado! Verifique sua caixa de entrada e clique no link enviado para confirmar o e-mail antes de entrar.', 'success');
+                        showMessage('Cadastro realizado com sucesso! Verifique seu e-mail e clique no link de confirmação para ativar sua conta.', 'success');
                     } else {
                         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                         if (error) {
                             const errLower = error.message.toLowerCase();
                             if (errLower.includes('email not confirmed')) {
-                                showMessage('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.', 'error');
+                                showMessage('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de boas-vindas.', 'error');
                             } else if (errLower.includes('invalid login credentials')) {
-                                showMessage('E-mail ou senha incorretos.', 'error');
+                                showMessage('E-mail ou senha incorretos. Confirme se já ativou a conta pelo link do e-mail.', 'error');
                             } else {
                                 showMessage(error.message, 'error');
                             }
@@ -284,7 +297,6 @@
 
             initialize();
         })();
-        
     </script>
 </body>
 </html>
