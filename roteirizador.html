@@ -346,6 +346,16 @@ function payload(){return{stops:JSON.parse(JSON.stringify(stops)),displayMode,lo
 function localHash(){return hash(canon(payload()))}
 function storedHash(){try{return localStorage.getItem(HASH_KEY)}catch(e){return null}}
 function setStored(h){try{if(h===null)localStorage.removeItem(HASH_KEY);else localStorage.setItem(HASH_KEY,h)}catch(e){}}
+async function saveRow(p){
+const row={user_id:uid,route_data:p,updated_at:new Date().toISOString()};
+const r=await supabaseClient.from('user_routes').upsert(row,{onConflict:'user_id'});
+if(r.error&&/unique or exclusion|duplicate key/i.test(String(r.error.message||''))){
+const u=await supabaseClient.from('user_routes').update({route_data:p,updated_at:row.updated_at}).eq('user_id',uid).select('user_id');
+if(!u.error&&u.data&&u.data.length)return u;
+return await supabaseClient.from('user_routes').insert(row)
+}
+return r
+}
 async function push(force){
 if(busy)return;
 if(!uid){setSync('error','Sem sessão ativa. Saia e entre novamente.');return}
@@ -354,7 +364,7 @@ if(!force&&h===prev)return;
 busy=true;
 setSync('sending','Enviando…');
 try{
-const r=await supabaseClient.from('user_routes').upsert({user_id:uid,route_data:p,updated_at:new Date().toISOString()});
+const r=await saveRow(p);
 if(r.error)throw r.error;
 const c=await supabaseClient.from('user_routes').select('updated_at').eq('user_id',uid).maybeSingle();
 if(c.error)throw c.error;
