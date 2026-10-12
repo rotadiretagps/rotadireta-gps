@@ -333,38 +333,61 @@ updateTimerUI();if(timerRunning&&startTime){startTimer()}else{timerRunning=false
 (function(){
 const TABELA_PERFIL='profiles',COLUNA_ID='id',COLUNA_PAGO_ATE='pago_ate';
 const HASH_KEY='rotaSyncHash',DAY_KEY='rotaDayInfo',DAY=864e5;
-let uid=null,pushTimer=null,applying=false,busy=false;
+let uid=null,pushTimer=null,retryTimer=null,applying=false,busy=false,importPending=false,lastSeen=null;
+const sync=window.rotaSync={state:'idle',msg:'',at:0,count:0};
+function setSync(state,msg,count){sync.state=state;sync.msg=msg||'';sync.at=Date.now();if(count!==undefined)sync.count=count;window.dispatchEvent(new CustomEvent('rotaSync'))}
+function explain(e){const m=String((e&&(e.message||e.details))||e||'').toLowerCase(),c=String((e&&e.code)||'');if(c==='42P01'||c==='PGRST205'||m.includes('does not exist')||m.includes('could not find the table'))return'A tabela user_routes não existe no Supabase. Rode o SQL de configuração.';if(c==='42501'||m.includes('row-level security')||m.includes('permission denied'))return'O Supabase negou a gravação (regras RLS). Rode o SQL de configuração.';if(m.includes('fetch')||m.includes('network')||!navigator.onLine)return'Sem internet. Será enviado quando a conexão voltar.';return'Falha ao enviar: '+String((e&&e.message)||e)}
 function canon(v){if(Array.isArray(v))return'['+v.map(canon).join(',')+']';if(v&&typeof v==='object')return'{'+Object.keys(v).sort().filter(k=>v[k]!==undefined).map(k=>JSON.stringify(k)+':'+canon(v[k])).join(',')+'}';return JSON.stringify(v===undefined?null:v)}
 function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return s.length+':'+h}
-function payload(){return{stops:JSON.parse(JSON.stringify(stops)),displayMode,lotKind,coordCorrections:window.coordCorrections||{}}}
+function getListId(){try{return localStorage.getItem('rotaListId')}catch(e){return null}}
+function setListId(v){try{if(v)localStorage.setItem('rotaListId',v)}catch(e){}}
+function newListId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function payload(){return{stops:JSON.parse(JSON.stringify(stops)),displayMode,lotKind,coordCorrections:window.coordCorrections||{},listId:getListId()}}
 function localHash(){return hash(canon(payload()))}
 function storedHash(){try{return localStorage.getItem(HASH_KEY)}catch(e){return null}}
 function setStored(h){try{if(h===null)localStorage.removeItem(HASH_KEY);else localStorage.setItem(HASH_KEY,h)}catch(e){}}
-async function push(){
-if(!uid||busy)return;
+async function push(force){
+if(busy)return;
+if(!uid){setSync('error','Sem sessão ativa. Saia e entre novamente.');return}
 const p=payload(),h=hash(canon(p)),prev=storedHash();
-if(h===prev)return;
-busy=true;setStored(h);
+if(!force&&h===prev)return;
+busy=true;
+setSync('sending','Enviando…');
 try{
 const r=await supabaseClient.from('user_routes').upsert({user_id:uid,route_data:p,updated_at:new Date().toISOString()});
-if(r.error)throw r.error
-}catch(e){setStored(prev)}
-busy=false;
-if(localHash()!==storedHash())schedule()
+if(r.error)throw r.error;
+const c=await supabaseClient.from('user_routes').select('updated_at').eq('user_id',uid).maybeSingle();
+if(c.error)throw c.error;
+if(!c.data)throw new Error('Gravação não confirmada.');
+setStored(h);
+lastSeen=c.data.updated_at;
+setSync('ok','Enviada',p.stops.length)
+}catch(e){
+setStored(prev);
+setSync('error',explain(e));
+clearTimeout(retryTimer);
+retryTimer=setTimeout(()=>push(true),30000)
 }
-function schedule(){if(!uid)return;clearTimeout(pushTimer);pushTimer=setTimeout(push,1500)}
+busy=false;
+if(sync.state!=='error'&&localHash()!==storedHash())schedule()
+}
+window.rotaSyncNow=()=>{clearTimeout(pushTimer);return push(true)};
+function schedule(){if(!uid)return;clearTimeout(pushTimer);pushTimer=setTimeout(()=>push(),1500)}
 function applyRemote(p){
 const h=hash(canon(p));
+const force=!!p.listId&&p.listId!==getListId();
 if(h===localHash()){setStored(h);return}
-if(localHash()!==storedHash()&&storedHash()!==null)return;
+if(!force&&localHash()!==storedHash()&&storedHash()!==null)return;
 const oldIds=stops.map(s=>s.id).join('|'),newIds=(p.stops||[]).map(s=>s.id).join('|'),keep=selected&&selected.id;
+const isNew=force||oldIds!==newIds;
 applying=true;
 try{
+if(p.listId)setListId(p.listId);
 stops=p.stops||[];
 if(p.displayMode==='O'||p.displayMode==='P')displayMode=p.displayMode;
 if(['P','O','S','X'].includes(p.lotKind))lotKind=p.lotKind;
 window.coordCorrections=Object.assign({},window.coordCorrections||{},p.coordCorrections||{});storage.saveCorrections(window.coordCorrections);
-if(oldIds!==newIds){
+if(isNew){
 if(timer){clearInterval(timer);timer=null}
 routeRequest++;
 if(routeLayer){routeLayer.remove();routeLayer=null}
@@ -376,25 +399,31 @@ updateTimerUI()
 const mb=$('modeBtn');if(mb)mb.textContent=displayMode;
 save();
 updateUI();
-if(map){renderMap();if(oldIds!==newIds&&stops.length)frameRoute()}
-if(oldIds!==newIds&&stops.length)toast('Rota recebida da nuvem.',2500);
+if(map){renderMap();if(isNew&&stops.length)frameRoute()}
+if(isNew&&stops.length)toast('Rota recebida da nuvem.',2500);
 }finally{applying=false}
 setStored(h)
 }
-async function pull(){
+async function pull(full){
 if(!uid)return;
 try{
-const r=await supabaseClient.from('user_routes').select('route_data').eq('user_id',uid).maybeSingle();
+if(!full){
+const q=await supabaseClient.from('user_routes').select('updated_at').eq('user_id',uid).maybeSingle();
+if(q.error||!q.data)return;
+if(q.data.updated_at===lastSeen)return
+}
+const r=await supabaseClient.from('user_routes').select('route_data,updated_at').eq('user_id',uid).maybeSingle();
 if(r.error)return;
-if(r.data&&r.data.route_data)applyRemote(r.data.route_data);
+if(r.data&&r.data.route_data){lastSeen=r.data.updated_at;applyRemote(r.data.route_data)}
 if(stops.length||storedHash()!==null){if(localHash()!==storedHash())schedule()}
 }catch(e){}
 }
 function listen(){
-supabaseClient.channel('rota-'+uid).on('postgres_changes',{event:'*',schema:'public',table:'user_routes',filter:'user_id=eq.'+uid},m=>{if(m.new&&m.new.route_data)applyRemote(m.new.route_data)}).subscribe()
+supabaseClient.channel('rota-'+uid).on('postgres_changes',{event:'*',schema:'public',table:'user_routes',filter:'user_id=eq.'+uid},m=>{if(m.new&&m.new.route_data){lastSeen=m.new.updated_at;applyRemote(m.new.route_data)}}).subscribe()
 }
 const baseSave=save;
-save=function(){const r=baseSave.apply(this,arguments);if(!applying)schedule();return r};
+save=function(){const r=baseSave.apply(this,arguments);if(!applying){if(importPending){importPending=false;setListId(newListId())}schedule()}return r};
+if(typeof startImport==='function'){const baseImport=startImport;startImport=function(){importPending=true;setTimeout(()=>{importPending=false},30000);return baseImport.apply(this,arguments)}}
 function pad(n){return String(n).padStart(2,'0')}
 function day0(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()}
 function renderDays(info){
@@ -596,11 +625,12 @@ try{const s=(await supabaseClient.auth.getSession()).data.session;user=s&&s.user
 startDays(user);
 if(!user)return;
 uid=user.id;
-await pull();
+await pull(true);
 await pullCorr();
 listen();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()});
-window.addEventListener('online',()=>{pull();pullCorr()})
+window.addEventListener('online',()=>{push(true);pull();pullCorr()});
+setInterval(()=>{if(!document.hidden)pull()},15000)
 }
 if(typeof supabaseClient!=='undefined'&&supabaseClient)init()
 })();
