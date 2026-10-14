@@ -91,7 +91,7 @@ input:focus,select:focus{border-color:var(--green)}
 </form>
 <div id="paymentScreen" hidden>
 <p class="expired" id="payText">Seu período de teste ou assinatura expirou. Para continuar utilizando o RotaDireta GPS por mais 30 dias, realize a renovação de R$ 25,00.</p>
-<a class="primary pay" id="payButton" href="https://invoice.infinitepay.io/alexandre-morche/ITaZ64Sot8" target="_blank" rel="noopener">Pagar R$ 25,00 via InfinitePay</a>
+<a class="primary pay" id="payButton" href="#" target="_blank" rel="noopener">Pagar R$ 25,00 via InfinitePay</a>
 <button class="primary out" id="recheckButton" type="button">Verificar acesso</button>
 <button class="primary out" id="logoutButton" type="button">Sair</button>
 </div>
@@ -206,12 +206,14 @@ setBadge('Sem verificação','bad')
 function createCharge(token){
 return new Promise(resolve=>{
 const x=new XMLHttpRequest();
-x.open('POST',SUPABASE_URL+'/functions/v1/criar-cobranca',true);
+const antiCache = new Date().getTime();
+x.open('POST',SUPABASE_URL+'/functions/v1/criar-cobranca?t='+antiCache,true);
 x.timeout=20000;
 x.setRequestHeader('Content-Type','application/json');
 x.setRequestHeader('apikey',SUPABASE_ANON_KEY);
 x.setRequestHeader('Authorization','Bearer '+token);
-x.onload=()=>{try{const d=JSON.parse(x.responseText);resolve(x.status>=200&&x.status<300&&d.url?d.url:null)}catch(e){resolve(null)}};
+x.setRequestHeader('Cache-Control','no-cache');
+x.onload=()=>{try{const d=JSON.parse(x.responseText);resolve(x.status>=200&&x.status<300&&(d.checkout_url||d.url)?(d.checkout_url||d.url):null)}catch(e){resolve(null)}};
 x.onerror=x.ontimeout=()=>resolve(null);
 x.send('{}')
 })
@@ -247,14 +249,14 @@ showPayment()
 }
 $('payButton').addEventListener('click',async e=>{
 e.preventDefault();
-const btn=$('payButton'),label=btn.textContent,fallback=btn.href;
+const btn=$('payButton');
 let token=null;
 try{const s=(await client.auth.getSession()).data.session;token=s&&s.access_token}catch(err){}
-if(!token){location.href=fallback;return}
+if(!token){alert('Sessão não encontrada. Faça login novamente.');return}
 btn.textContent='Abrindo pagamento...';
 const url=await createCharge(token);
-btn.textContent=label;
-location.href=url||fallback
+btn.textContent='Pagar R$ 25,00 via InfinitePay';
+if(url){location.href=url}else{alert('Erro ao gerar cobrança. Tente novamente.')}
 });
 $('recheckButton').addEventListener('click',async()=>{
 clearMessage();
@@ -336,29 +338,4 @@ if(!client){setMode('login');return say('Não foi possível carregar o serviço.
 client.auth.onAuthStateChange(ev=>{
 if(ev==='PASSWORD_RECOVERY'){recovering=true;setMode('reset')}
 });
-if(urlError){setMode('login');return say(translate(urlError),'error')}
-if(recovering){setMode('reset');return}
-let session=null;
-try{session=(await client.auth.getSession()).data.session}catch(e){}
-if(session&&session.user){
-setBadge('Verificando acesso...');
-form.hidden=true;
-tabs.hidden=true;
-if(query.get('order_nsu')||query.get('pago')){
-setBadge('Confirmando pagamento...');
-for(let i=0;i<12;i++){
-const pr=await readProfile(session.user);
-if(pr.ok&&pr.data&&pr.data.pago_ate&&new Date(pr.data.pago_ate).getTime()>Date.now())break;
-await sleep(5000)
-}
-try{history.replaceState(null,'',location.pathname)}catch(e){}
-}
-return checkUserAccess(session.user,savedRole())
-}
-setMode('login')
-}
-start()
-})();
-</script>
-</body>
-</html>
+if(urlError){setMode('login');return sa
