@@ -8,8 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<script src="legacy.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="legacy.js"></script><script>try{if(localStorage.getItem('legacyMode')==='1')document.documentElement.className+=' legacy';else document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>')}catch(e){}</script>
 <style>
 :root{color-scheme:dark;--background:#111111;--card:#202020;--field:#292929;--green:#19b653;--muted:#a3a3ad;--warning:#d97706;--danger:#ef4444}
 *{box-sizing:border-box}
@@ -92,7 +91,8 @@ input:focus,select:focus{border-color:var(--green)}
 </form>
 <div id="paymentScreen" hidden>
 <p class="expired" id="payText">Seu período de teste ou assinatura expirou. Para continuar utilizando o RotaDireta GPS por mais 30 dias, realize a renovação de R$ 25,00.</p>
-<a class="primary pay" id="payButton" href="#" target="_blank" rel="noopener">Pagar R$ 25,00 via InfinitePay</a>
+<button class="primary pay" id="payButton" type="button">Pagar R$ 25,00 via InfinitePay</button>
+<div class="message" id="payMessage" role="status" aria-live="polite"></div>
 <button class="primary out" id="recheckButton" type="button">Verificar acesso</button>
 <button class="primary out" id="logoutButton" type="button">Sair</button>
 </div>
@@ -107,7 +107,7 @@ const ADMIN_EMAILS=['rotadiretagps@gmail.com','morchemarques@gmail.com'];
 const TRIAL_DAYS=15;
 const ROUTER_URL='roteirizador.html';
 const PREPARER_URL='preparador.html';
-const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const client=window.rotaCreateClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
 const form=$('authForm'),tabs=$('tabs'),loginTab=$('loginTab'),signupTab=$('signupTab');
 const nameWrap=$('nameWrap'),emailWrap=$('emailWrap'),passwordWrap=$('passwordWrap'),confirmWrap=$('confirmPasswordWrap'),roleWrap=$('deviceRoleWrap');
@@ -201,20 +201,19 @@ note.hidden=true;
 $('legacyBox').hidden=true;
 $('payText').textContent='Não foi possível verificar seu acesso agora. Verifique a internet e toque em Verificar acesso.';
 $('payButton').hidden=true;
+$('payMessage').className='message';
 paymentScreen.hidden=false;
 setBadge('Sem verificação','bad')
 }
 function createCharge(token){
 return new Promise(resolve=>{
 const x=new XMLHttpRequest();
-const antiCache = new Date().getTime();
-x.open('POST',SUPABASE_URL+'/functions/v1/criar-cobranca?t='+antiCache,true);
+x.open('POST',SUPABASE_URL+'/functions/v1/criar-cobranca?t='+Date.now(),true);
 x.timeout=20000;
 x.setRequestHeader('Content-Type','application/json');
 x.setRequestHeader('apikey',SUPABASE_ANON_KEY);
 x.setRequestHeader('Authorization','Bearer '+token);
-x.setRequestHeader('Cache-Control','no-cache');
-x.onload=()=>{try{const d=JSON.parse(x.responseText);resolve(x.status>=200&&x.status<300&&(d.checkout_url||d.url)?(d.checkout_url||d.url):null)}catch(e){resolve(null)}};
+x.onload=()=>{try{const d=JSON.parse(x.responseText);const u=d.checkout_url||d.url;resolve(x.status>=200&&x.status<300&&typeof u==='string'&&u.indexOf('https://')===0?u:null)}catch(e){resolve(null)}};
 x.onerror=x.ontimeout=()=>resolve(null);
 x.send('{}')
 })
@@ -248,16 +247,20 @@ if(trialEnd>now){setBadge('Período gratuito até '+fmt(trialEnd),'ok');return e
 localStorage.removeItem('accessUntil');
 showPayment()
 }
-$('payButton').addEventListener('click',async e=>{
-e.preventDefault();
-const btn=$('payButton');
+$('payButton').addEventListener('click',async()=>{
+const btn=$('payButton'),box=$('payMessage'),label=btn.textContent;
+box.textContent='';box.className='message';
 let token=null;
 try{const s=(await client.auth.getSession()).data.session;token=s&&s.access_token}catch(err){}
-if(!token){alert('Sessão não encontrada. Faça login novamente.');return}
+if(!token){box.textContent='Sessão expirada. Toque em Sair e entre de novo.';box.className='message error';return}
+btn.disabled=true;
 btn.textContent='Abrindo pagamento...';
 const url=await createCharge(token);
-btn.textContent='Pagar R$ 25,00 via InfinitePay';
-if(url){location.href=url}else{alert('Erro ao gerar cobrança. Tente novamente.')}
+btn.disabled=false;
+btn.textContent=label;
+if(url){location.href=url;return}
+box.textContent='Não foi possível gerar o pagamento agora. Verifique a internet e tente novamente.';
+box.className='message error'
 });
 $('recheckButton').addEventListener('click',async()=>{
 clearMessage();
@@ -342,4 +345,26 @@ if(ev==='PASSWORD_RECOVERY'){recovering=true;setMode('reset')}
 if(urlError){setMode('login');return say(translate(urlError),'error')}
 if(recovering){setMode('reset');return}
 let session=null;
-try{session=(await client.auth.getSession()).data.
+try{session=(await client.auth.getSession()).data.session}catch(e){}
+if(session&&session.user){
+setBadge('Verificando acesso...');
+form.hidden=true;
+tabs.hidden=true;
+if(query.get('order_nsu')||query.get('pago')){
+setBadge('Confirmando pagamento...');
+for(let i=0;i<12;i++){
+const pr=await readProfile(session.user);
+if(pr.ok&&pr.data&&pr.data.pago_ate&&new Date(pr.data.pago_ate).getTime()>Date.now())break;
+await sleep(5000)
+}
+try{history.replaceState(null,'',location.pathname)}catch(e){}
+}
+return checkUserAccess(session.user,savedRole())
+}
+setMode('login')
+}
+start()
+})();
+</script>
+</body>
+</html>

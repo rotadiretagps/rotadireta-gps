@@ -28,7 +28,7 @@ var m=b.error_description||b.msg||b.message||b.error||('HTTP '+r.status);
 return{message:String(m),status:r.status,code:b.code||b.error_code,details:b.details,hint:b.hint}
 }
 function createClient(url,key,opts){
-if(!legacyOn()&&W.supabase&&W.supabase.createClient)return W.supabase.createClient(url,key,opts);
+if(!legacyOn())return W.supabase&&W.supabase.createClient?W.supabase.createClient(url,key,opts):null;
 url=url.replace(/\/+$/,'');
 var ref=(url.match(/^https?:\/\/([^.]+)\./)||[])[1]||'app';
 var storeKey='sb-'+ref+'-auth-token';
