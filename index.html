@@ -8,7 +8,8 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<script src="legacy.js"></script><script>try{if(localStorage.getItem('legacyMode')==='1')document.documentElement.className+=' legacy';else document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>')}catch(e){}</script>
+<script src="legacy.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{color-scheme:dark;--background:#111111;--card:#202020;--field:#292929;--green:#19b653;--muted:#a3a3ad;--warning:#d97706;--danger:#ef4444}
 *{box-sizing:border-box}
@@ -106,7 +107,7 @@ const ADMIN_EMAILS=['rotadiretagps@gmail.com','morchemarques@gmail.com'];
 const TRIAL_DAYS=15;
 const ROUTER_URL='roteirizador.html';
 const PREPARER_URL='preparador.html';
-const client=window.rotaCreateClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
 const form=$('authForm'),tabs=$('tabs'),loginTab=$('loginTab'),signupTab=$('signupTab');
 const nameWrap=$('nameWrap'),emailWrap=$('emailWrap'),passwordWrap=$('passwordWrap'),confirmWrap=$('confirmPasswordWrap'),roleWrap=$('deviceRoleWrap');
@@ -338,4 +339,7 @@ if(!client){setMode('login');return say('Não foi possível carregar o serviço.
 client.auth.onAuthStateChange(ev=>{
 if(ev==='PASSWORD_RECOVERY'){recovering=true;setMode('reset')}
 });
-if(urlError){setMode('login');return sa
+if(urlError){setMode('login');return say(translate(urlError),'error')}
+if(recovering){setMode('reset');return}
+let session=null;
+try{session=(await client.auth.getSession()).data.
