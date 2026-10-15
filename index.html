@@ -97,14 +97,14 @@ input:focus,select:focus{border-color:var(--green)}
 <button class="primary out" id="logoutButton" type="button">Sair</button>
 </div>
 <div class="legacy-box" id="legacyBox"><div class="txt"><span>Modo dispositivo antigo Android</span></div><label class="sw"><input type="checkbox" id="legacyToggle" aria-label="Modo dispositivo antigo Android"><i></i></label></div>
-<p class="note" id="loginNote">Experimente grátis por 15 dias. Depois, são apenas R$ 25,00 por mês.</p>
+<p class="note" id="loginNote">Experimente grátis por 7 dias. Depois, são apenas R$ 25,00 por mês.</p>
 </main>
 <script>
 (()=>{
 const SUPABASE_URL='https://crrtjeanawlaodcexcad.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_IhRhHkEvnCuruc-mLU7fUQ_f7tnvQwJ';
 const ADMIN_EMAILS=['rotadiretagps@gmail.com','morchemarques@gmail.com'];
-const TRIAL_DAYS=15;
+const TRIAL_DAYS=7;
 const ROUTER_URL='roteirizador.html';
 const PREPARER_URL='preparador.html';
 const client=window.rotaCreateClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});

@@ -10,7 +10,7 @@ const LOGIN_URL='index.html';
 function goLogin(){window.location.replace('index.html')}
 function accessExpired(){const u=localStorage.getItem('accessUntil');return u!==null&&Number(u)>0&&Date.now()>Number(u)}
 function openApp(){if(accessExpired())return goLogin();document.documentElement.classList.add('role-'+deviceRole);const g=document.getElementById('authGate');if(g)g.remove();startAccessWatch()}
-const TRIAL_DAYS=15;
+const TRIAL_DAYS=7;
 async function recheckAccess(){
 try{
 if(localStorage.getItem('accessUntil')==='0'||!navigator.onLine||!supabaseClient)return;
