@@ -505,7 +505,7 @@ let n,max,msg;
 if(pago&&pago.getTime()>now.getTime()){
 max=30;n=Math.min(max,Math.max(1,Math.floor((day0(now)-day0(new Date(pago.getTime()-30*DAY)))/DAY)+1));msg='Assinatura: dia '+n+' de 30'
 }else{
-max=15;n=Math.min(max,Math.max(1,Math.floor((day0(now)-day0(new Date(info.c)))/DAY)+1));msg='Teste grátis: dia '+n+' de 15'
+max=TRIAL_DAYS;n=Math.min(max,Math.max(1,Math.floor((day0(now)-day0(new Date(info.c)))/DAY)+1));msg='Teste grátis: dia '+n+' de '+TRIAL_DAYS
 }
 el.textContent='d '+pad(n);el.title=msg
 }
