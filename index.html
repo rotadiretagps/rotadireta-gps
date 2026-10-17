@@ -12,12 +12,12 @@
 <meta property="og:title" content="RotaDireta GPS - Rotas de entrega">
 <meta property="og:description" content="Organize suas entregas e siga a melhor rota até o destino. Teste grátis por 7 dias.">
 <meta property="og:url" content="https://rotadiretagps.github.io/rotadireta-gps/">
-<meta property="og:image" content="https://rotadiretagps.github.io/rotadireta-gps/og-image.png">
+<meta property="og:image" content="https://rotadiretagps.github.io/rotadireta-gps/og-thumb.png">
 <meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://rotadiretagps.github.io/rotadireta-gps/og-image.png">
+<meta property="og:image:width" content="256">
+<meta property="og:image:height" content="256">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://rotadiretagps.github.io/rotadireta-gps/og-thumb.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -50,10 +50,12 @@ input:focus,select:focus{border-color:var(--green)}
 .primary:disabled{opacity:.6;cursor:wait}
 .pay{display:block;text-align:center;text-decoration:none;background:#3b82f6;color:#fff}
 .out{background:#2a2a2a;color:#fff}
+.secondary[hidden]{display:none}
 .secondary{display:block;margin:18px auto 0;padding:5px;border:0;background:transparent;color:#b7d8ff;font-size:15px;text-decoration:underline;cursor:pointer}
 .message{display:none;margin-top:20px;padding:15px;border-radius:10px;overflow-wrap:anywhere;font-size:15px;line-height:1.5}
 .message.success{display:block;background:#173b27;color:#a8f2c1}
 .message.error{display:block;background:#472626;color:#ffb2b2}
+.about{margin-top:30px;padding-top:26px;border-top:1px solid #3a3a3a;text-align:left}.about h2{margin:0 0 12px;color:var(--green);font-size:22px}.about p{margin:0 0 16px;color:#d4d4da;font-size:15px;line-height:1.6}.about ul{margin:0 0 16px;padding:0;list-style:none}.about li{margin:0 0 12px;padding:12px 14px;border-left:4px solid var(--green);border-radius:8px;background:var(--field);color:#d4d4da;font-size:15px;line-height:1.55}.about li strong{display:block;margin-bottom:3px;color:#fff;font-size:16px}.about .cta{margin:0;color:#fff;font-weight:bold}
 .contact{margin:14px 0 0;color:var(--muted);text-align:center;font-size:13px;line-height:1.7}.contact a{color:inherit;font-weight:700}
 .note{margin:24px 0 0;color:var(--muted);text-align:center;font-size:13px;line-height:1.5}
 .expired{margin:0 0 16px;line-height:1.5;color:var(--muted);font-size:16px}
@@ -101,6 +103,7 @@ input:focus,select:focus{border-color:var(--green)}
 </div>
 <button class="primary" id="submitButton" type="submit">Entrar na Conta</button>
 <button class="secondary" id="forgotButton" type="button">Esqueci minha senha</button>
+<button class="secondary" id="resendButton" type="button" hidden>Reenviar e-mail de confirmação</button>
 <div id="message" class="message" role="status" aria-live="polite"></div>
 </form>
 <div id="paymentScreen" hidden>
@@ -112,7 +115,19 @@ input:focus,select:focus{border-color:var(--green)}
 </div>
 <div class="legacy-box" id="legacyBox"><div class="txt"><span>Modo dispositivo antigo Android</span></div><label class="sw"><input type="checkbox" id="legacyToggle" aria-label="Modo dispositivo antigo Android"><i></i></label></div>
 <p class="note" id="loginNote">Experimente grátis por 7 dias. Depois, são apenas R$ 25,00 por mês.</p>
-<p class="contact">67.175.813 ALEXANDRE MORCHE<br>CNPJ: 67.175.813/0001-93<br>E-mail: <a href="mailto:rotadiretagps@gmail.com">rotadiretagps@gmail.com</a><br>WhatsApp: <a href="https://wa.me/5519971577157" target="_blank" rel="noopener">(19) 97157-7157</a><br><a href="termos.html">Termos de uso</a> | <a href="privacidade.html">Política de privacidade</a></p>
+<section class="about" id="about">
+<h2>Como funciona o RotaDireta GPS</h2>
+<p>Chega de perder tempo e combustível planejando rotas na mão. O RotaDireta GPS foi criado por um entregador, aqui no Brasil, feito de entregador para entregador. Ele simplifica a sua rotina com um preço justo e uma navegação simples e intuitiva na tela.</p>
+<ul>
+<li><strong>Roteirização inteligente com IA</strong>Organize dezenas de paradas em segundos, com a ajuda de uma inteligência artificial integrada, em apenas 1 clique.</li>
+<li><strong>Navegue no seu GPS favorito</strong>Abra a rota direto no Google Maps, Waze ou HERE WeGo.</li>
+<li><strong>Correção de endereço</strong>A rua está certa, mas o número da casa está no lugar errado? Ajuste a localização exata no mapa para que as próximas entregas fiquem corretas.</li>
+<li><strong>Reordenação automática</strong>A melhor sequência de paradas para você rodar menos km.</li>
+<li><strong>Controle total</strong>Acompanhe o status das suas entregas em tempo real.</li>
+</ul>
+<p class="cta">Otimize seu dia, economize combustível e aumente seus lucros. Faça seu cadastro rápido e comece agora com 7 dias grátis.</p>
+</section>
+<p class="contact">CNPJ: 67.175.813/0001-93<br>E-mail: <a href="mailto:rotadiretagps@gmail.com">rotadiretagps@gmail.com</a><br>WhatsApp: <a href="https://wa.me/5519971577157" target="_blank" rel="noopener">(19) 97157-7157</a><br><a href="termos.html">Termos de uso</a> | <a href="privacidade.html">Política de privacidade</a></p>
 </main>
 <script>
 (()=>{
@@ -127,14 +142,14 @@ const $=id=>document.getElementById(id);
 const form=$('authForm'),tabs=$('tabs'),loginTab=$('loginTab'),signupTab=$('signupTab');
 const nameWrap=$('nameWrap'),emailWrap=$('emailWrap'),passwordWrap=$('passwordWrap'),confirmWrap=$('confirmPasswordWrap'),roleWrap=$('deviceRoleWrap');
 const emailInput=$('email'),passwordInput=$('password'),confirmInput=$('confirmPassword'),nameInput=$('fullName'),roleSelect=$('deviceRole');
-const submitButton=$('submitButton'),forgotButton=$('forgotButton'),note=$('loginNote'),message=$('message');
+const submitButton=$('submitButton'),forgotButton=$('forgotButton'),resendButton=$('resendButton'),note=$('loginNote'),message=$('message');
 const paymentScreen=$('paymentScreen'),badge=$('statusBadge'),badgeText=$('accountStatusText');
 const params=new URLSearchParams(location.hash.slice(1));
 const query=new URLSearchParams(location.search);
 let mode='login';
 let recovering=params.get('type')==='recovery';
 function say(text,type){message.textContent=text;message.className='message '+type}
-function clearMessage(){message.textContent='';message.className='message'}
+function clearMessage(){message.textContent='';message.className='message';resendButton.hidden=true}
 function setBadge(text,kind){badgeText.textContent=text;badge.className='status-badge'+(kind?' '+kind:'')}
 function setMode(next,keep){
 mode=next;
@@ -153,7 +168,7 @@ confirmInput.required=signup||reset;
 roleWrap.hidden=signup||reset;
 forgotButton.hidden=signup||reset;
 note.hidden=reset;
-$('legacyBox').hidden=reset;
+$('legacyBox').hidden=signup||reset;
 paymentScreen.hidden=true;
 form.hidden=false;
 $('passwordLabel').textContent=reset?'Nova senha':'Senha';
@@ -183,7 +198,7 @@ function translate(m){
 const t=String(m||'').toLowerCase();
 if(t.includes('invalid login'))return'E-mail ou senha incorretos.';
 if(t.includes('already registered')||t.includes('already been registered'))return'Este e-mail já tem cadastro. Use a aba Entrar.';
-if(t.includes('email not confirmed'))return'Confirme seu e-mail pelo link que enviamos antes de entrar.';
+if(t.includes('email not confirmed'))return'Confirme seu e-mail pelo link que enviamos antes de entrar. Se não encontrar a mensagem, olhe a caixa de spam e a aba Promoções.';
 if(t.includes('password should be'))return'A senha precisa ter pelo menos 6 caracteres.';
 if(t.includes('same password')||t.includes('different from the old'))return'A nova senha precisa ser diferente da atual.';
 if(t.includes('invalid email')||t.includes('unable to validate email'))return'E-mail inválido.';
@@ -319,7 +334,8 @@ const r=await client.auth.signUp({email,password,options:{emailRedirectTo:locati
 if(r.error)throw r.error;
 if(r.data.session&&r.data.user)return await checkUserAccess(r.data.user,'roteirizador');
 setMode('login',true);
-say('Conta criada! Se receber um e-mail de confirmação, clique no link e depois entre.','success');
+say('Conta criada! Enviamos um e-mail de confirmação para '+email+'. Abra a mensagem e clique no link antes de entrar. Se não encontrar, olhe a caixa de spam e a aba Promoções.','success');
+resendButton.hidden=false;
 return
 }
 const r=await client.auth.signInWithPassword({email,password});
@@ -328,7 +344,8 @@ rlClear('login');
 if(r.data.user)await checkUserAccess(r.data.user,roleSelect.value)
 }catch(err){
 if(mode==='login'&&/invalid login/i.test(String(err&&err.message)))rlHit('login',5,900000,300000);
-say(translate(err.message),'error')
+say(translate(err.message),'error');
+if(/email not confirmed/i.test(String(err&&err.message)))resendButton.hidden=false
 }
 finally{submitButton.disabled=false}
 });
@@ -343,6 +360,21 @@ rlHit('reset',3,3600000,3600000);
 const r=await client.auth.resetPasswordForEmail(email,{redirectTo:location.href.split(/[?#]/)[0]});
 if(r.error)say(translate(r.error.message),'error');
 else say('Enviamos as instruções de recuperação para o seu e-mail.','success')
+});
+resendButton.addEventListener('click',async()=>{
+if(!client)return say('Serviço indisponível. Verifique a internet e recarregue.','error');
+const email=emailInput.value.trim();
+if(!email){say('Digite seu e-mail para reenviar a confirmação.','error');return}
+const waitResend=rlLeft('resend');
+if(waitResend>0)return say(rlMsg(waitResend),'error');
+rlHit('resend',3,3600000,3600000);
+resendButton.disabled=true;
+try{
+const r=await client.auth.resend({type:'signup',email,options:{emailRedirectTo:location.href.split(/[?#]/)[0]}});
+if(r.error)say(translate(r.error.message),'error');
+else{say('Enviamos outro e-mail de confirmação para '+email+'. Olhe também a caixa de spam e a aba Promoções.','success');resendButton.hidden=false}
+}catch(err){say(translate(err&&err.message),'error')}
+finally{resendButton.disabled=false}
 });
 const legacyToggle=$('legacyToggle');
 try{legacyToggle.checked=localStorage.getItem('legacyMode')==='1'}catch(e){}
