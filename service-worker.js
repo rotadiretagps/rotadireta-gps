@@ -1,7 +1,7 @@
-const CACHE='rota-direta-gps';
+const CACHE='rota-direta-gps-v3';
 const TILE_CACHE='rota-direta-gps-tiles';
 const MAX_TILES=400;
-const SHELL=['./','./index.html','./roteirizador.html','./preparador.html','./legacy.js','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-512-maskable.png'];
+const SHELL=['./','./index.html','./roteirizador.html','./preparador.html','./legacy.js','./update.js','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-512-maskable.png'];
 const LIBS=[
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
@@ -13,7 +13,7 @@ const TILE_HOSTS=/^https:\/\/([a-c]\.tile\.openstreetmap\.org|server\.arcgisonli
 self.addEventListener('install',event=>{
   event.waitUntil(
     caches.open(CACHE)
-      .then(cache=>Promise.all(SHELL.concat(LIBS).map(url=>cache.add(url).catch(()=>null))))
+      .then(cache=>Promise.all(SHELL.concat(LIBS).map(url=>fetch(new Request(url,{cache:'reload'})).then(r=>r.ok?cache.put(url,r):null).catch(()=>null))))
       .then(()=>self.skipWaiting())
   );
 });
@@ -57,7 +57,7 @@ async function libStrategy(request){
 async function appStrategy(request){
   const cache=await caches.open(CACHE);
   try{
-    const response=await fetch(request);
+    const response=await fetch(new Request(request.url,{cache:'no-store',credentials:'same-origin'}));
     if(response&&response.ok)cache.put(request,response.clone());
     return response;
   }catch(error){
