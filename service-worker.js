@@ -1,6 +1,6 @@
-const CACHE='rota-direta-gps-d9';
+const CACHE='rota-direta-gps-d12';
 const TILE_CACHE='rota-direta-gps-tiles';
-const MAX_TILES=400;
+const MAX_TILES=1500;
 const SHELL=['./','./index.html','./roteirizador.html','./preparador.html','./legacy.js','./update.js','./termos.html','./privacidade.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-512-maskable.png'];
 const LIBS=[
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
@@ -10,7 +10,7 @@ const LIBS=[
   'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js'
 ];
 const LIB_HOSTS=/^https:\/\/(unpkg\.com|cdn\.jsdelivr\.net|cdn\.sheetjs\.com)\//;
-const TILE_HOSTS=/^https:\/\/([a-c]\.tile\.openstreetmap\.org|server\.arcgisonline\.com)\//;
+const TILE_HOSTS=/^https:\/\/((?:[a-c]\.)?tile\.openstreetmap\.org|server\.arcgisonline\.com)\//;
 
 self.addEventListener('install',event=>{
   event.waitUntil(
