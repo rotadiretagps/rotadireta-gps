@@ -150,7 +150,7 @@ function scannerEmit(text){const now=Date.now();if(!text)return;if(text===scanne
 const camKeep={stream:null,idle:null};
 async function camPermState(){try{if(navigator.permissions&&navigator.permissions.query){const r=await navigator.permissions.query({name:'camera'});return r.state}}catch(e){}return 'unknown'}
 async function getCamStream(){if(camKeep.stream&&camKeep.stream.getVideoTracks().some(t=>t.readyState==='live')){clearTimeout(camKeep.idle);return camKeep.stream}
-const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});camKeep.stream=st;return st}
+const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});camKeep.stream=st;return st}
 function camReleaseNow(){clearTimeout(camKeep.idle);if(camKeep.stream){camKeep.stream.getTracks().forEach(t=>t.stop());camKeep.stream=null}}
 function camReleaseLater(){clearTimeout(camKeep.idle);camKeep.idle=setTimeout(camReleaseNow,90000)}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!scanner.active)camReleaseNow()});
