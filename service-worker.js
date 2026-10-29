@@ -1,4 +1,4 @@
-const CACHE='rota-direta-gps-d16';
+const CACHE='rota-direta-gps-d18';
 const TILE_CACHE='rota-direta-gps-tiles';
 const MAX_TILES=1500;
 const SHELL=['./','./index.html','./roteirizador.html','./preparador.html','./legacy.js','./update.js','./termos.html','./privacidade.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-512-maskable.png'];
@@ -6,8 +6,7 @@ const LIBS=[
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js',
-  'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js',
-  'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js'
+  'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js'
 ];
 const LIB_HOSTS=/^https:\/\/(unpkg\.com|cdn\.jsdelivr\.net|cdn\.sheetjs\.com)\//;
 const TILE_HOSTS=/^https:\/\/((?:[a-c]\.)?tile\.openstreetmap\.org|server\.arcgisonline\.com)\//;
