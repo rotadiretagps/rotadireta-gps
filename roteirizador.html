@@ -232,7 +232,7 @@ function lsSetField(k){ls.field=k==='seq'?'seq':'stop';lsSave();lsRender(false)}
 function lsReset(){if(ls.done.length&&!confirm('Zerar toda a separação pela lista?'))return;ls.done=[];ls.last=null;lsSave();lsRender(false)}
 function wireLs(){$('lsOpenBtn').onclick=openLs;$('lsClose').onclick=closeLs;$('lsCamBtn').onclick=lsToggleCam;$('lsReset').onclick=lsReset;$('lsDeliver').onclick=lsDeliver;$('lsModeN').onclick=()=>lsSetMode('N');$('lsModeR').onclick=()=>lsSetMode('R');$('lsModeS').onclick=()=>lsSetMode('S');$('lsKindStop').onclick=()=>lsSetField('stop');$('lsKindSeq').onclick=()=>lsSetField('seq');
 const lm=()=>{const v=$('lsManual').value.trim();if(!v)return;$('lsManual').value='';lsHandle(v)};$('lsManualBtn').onclick=lm;$('lsManual').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();lm()}}}
-const TOOL_LABELS={gpsBtn:'GPS',layerBtn:'Mapa / Satélite',fullBtn:'Tela cheia',compassBtn:'Bússola',lotBtn:'Lotes',proxBtn:'Proximidade',modeBtn:'',scanBtn:'Escanear',voiceBtn:'Voz',zoomBtn:'Zoom automático'};
+const TOOL_LABELS={gpsBtn:'GPS',layerBtn:'Mapa / Satélite',fullBtn:'Tela cheia',compassBtn:'Bússola',lotBtn:'Lotes',proxBtn:'Proximidade',modeBtn:'',scanBtn:'Escanear',voiceBtn:'Voz',zoomBtn:'Função em teste'};
 const toolTimers=new Map();
 function toolLabelFor(id){if(id==='modeBtn')return displayMode==='O'?'Ordem':'Parada';return TOOL_LABELS[id]||''}
 function flashToolLabel(btn){if(!btn)return;btn.dataset.label=toolLabelFor(btn.id);if(!btn.dataset.label)return;document.querySelectorAll('.tool.showLabel').forEach(b=>{if(b!==btn)b.classList.remove('showLabel')});btn.classList.add('showLabel');clearTimeout(toolTimers.get(btn));toolTimers.set(btn,setTimeout(()=>btn.classList.remove('showLabel'),1800))}
