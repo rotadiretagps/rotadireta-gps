@@ -77,7 +77,10 @@ function show(id){$(id).style.display='block'}function hide(id){$(id).style.disp
 function closeAll(){['menu','summary','analysis','listPanel','detail','editLocal','help','gpsHelp','importInfo','reports','historyPanel','contact','exportOpts','weather'].forEach(hide)}
 let gpsWanted=false;let fullscreenWanted=false;let userGestureActive=false;class StorageManager{constructor(options){const o=options||{};this.keys=o.keys||{};this.dbName=o.dbName||'rotaDiretaGPS';this.maxDevices=2;this.syncUrl=null;this.locked=false;this.dbPromise=null;this.authToken=this.getRaw('rotaDiretaGPS_authToken');this.deviceId=this.getRaw('rotaDiretaGPS_deviceId')||this.createDeviceId();}
 backupName(){const d=new Date();return 'rota-direta-gps-backup-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.json'}
-async shareBackup(){const txt=this.exportBackup();for(const type of ['application/json','text/plain']){const f=new File([txt],this.backupName(),{type});if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Backup Rota Direta GPS'});return 'ok'}catch(e){return e&&e.name==='AbortError'?'cancel':'erro'}}}return 'indisponivel'}
+async shareBackup(){const txt=this.exportBackup();const nm=this.backupName();const tries=[[nm,'application/json'],[nm,'text/plain'],[nm.replace(/\.json$/i,'')+'.txt','text/plain']];let any=false;this.lastShareErr='';
+for(const[name,type]of tries){let f;try{f=new File([txt],name,{type})}catch(e){continue}if(!(navigator.canShare&&navigator.canShare({files:[f]})))continue;any=true;try{await navigator.share({files:[f],title:'Backup Rota Direta GPS'});return 'ok'}catch(e){if(e&&e.name==='AbortError')return 'cancel';this.lastShareErr=e&&e.name||'erro'}}
+if(!any&&navigator.share){try{await navigator.share({title:'Backup Rota Direta GPS',text:txt});return 'ok'}catch(e){if(e&&e.name==='AbortError')return 'cancel';this.lastShareErr=e&&e.name||'erro'}}
+return any||navigator.share?'erro':'indisponivel'}
 createDeviceId(){const id='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);try{localStorage.setItem('rotaDiretaGPS_deviceId',id);}catch(e){}
 return id;}
 getRaw(key){try{return localStorage.getItem(key)}catch(e){return null}}
@@ -618,7 +621,7 @@ $('expShare').onclick=async()=>{
 const r=await storage.shareBackup();
 hide('exportOpts');
 if(r==='indisponivel'){storage.downloadBackup();toast('Compartilhar não está disponível aqui. O arquivo foi baixado.',3500)}
-else if(r==='erro')toast('Não foi possível compartilhar. Tente baixar o arquivo.',3500)
+else if(r==='erro'){storage.downloadBackup();toast('Não deu para compartilhar'+(storage.lastShareErr?' ('+storage.lastShareErr+')':'')+'. O arquivo foi baixado: abra Downloads e envie por lá.',5000)}
 else if(r==='ok')toast('Backup compartilhado.',1800)
 };
 $('menuLogout').onclick=logout;
@@ -718,6 +721,7 @@ if(isNew&&stops.length)toast('Rota recebida da nuvem.',2500);
 }finally{applying=false}
 setStored(h)
 }
+const ROUTE_RETENTION_MS=24*60*60*1000;
 async function pull(full){
 if(!uid)return;
 try{
@@ -728,7 +732,7 @@ if(q.data.updated_at===lastSeen)return
 }
 const r=await supabaseClient.from('user_routes').select('route_data,updated_at').eq('user_id',uid).maybeSingle();
 if(r.error)return;
-if(r.data&&r.data.route_data){lastSeen=r.data.updated_at;applyRemote(r.data.route_data)}
+if(r.data&&r.data.updated_at&&Date.now()-new Date(r.data.updated_at).getTime()>ROUTE_RETENTION_MS){try{await supabaseClient.from('user_routes').delete().eq('user_id',uid)}catch(e){}}else if(r.data&&r.data.route_data){lastSeen=r.data.updated_at;applyRemote(r.data.route_data)}
 if(stops.length||storedHash()!==null){if(localHash()!==storedHash())schedule()}
 }catch(e){}
 }
