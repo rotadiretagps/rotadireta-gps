@@ -1,6 +1,6 @@
-const CACHE='rota-direta-gps-d33';
+const CACHE='rota-direta-gps-d36';
 const TILE_CACHE='rota-direta-gps-tiles';
-const MAX_TILES=1500;
+const MAX_TILES=4000;
 const SHELL=['./','./index.html','./roteirizador.html','./preparador.html','./legacy.js','./update.js','./termos.html','./privacidade.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-512-maskable.png'];
 const LIBS=[
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
