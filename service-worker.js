@@ -1,4 +1,4 @@
-const CACHE='rota-direta-gps-d67';
+const CACHE='rota-direta-gps-d69';
 const TILE_CACHE='rota-direta-gps-tiles';
 const MAX_TILES=4000;
 const SHELL=['./','./index.html','./roteirizador.html','./preparador.html','./legacy.js','./update.js','./termos.html','./privacidade.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-512-maskable.png'];
